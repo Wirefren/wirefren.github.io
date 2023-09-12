@@ -1,62 +1,64 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Arduino Code with Syntax Highlighting</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.25.0/themes/prism.min.css">
+    <title>Zoomable Table with Plotly</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
 <body>
+    <div id="plot-container"></div>
 
-<h1>Arduino Code with Syntax Highlighting</h1>
+    <script>
+        // Sample data for the table
+        var tableData = [
+            {
+                name: "John",
+                email: "john@example.com",
+            },
+            {
+                name: "Alice",
+                email: "alice@example.com",
+            },
+            {
+                name: "Bob",
+                email: "bob@example.com",
+            },
+        ];
 
-<h2>Arduino Sketch</h2>
-<pre><code class="language-arduino">
-#include &lt;Wire.h&gt;
-#include &lt;VL53L0X.h&gt;
+        // Define the layout for the table
+        var tableLayout = {
+            margin: { t: 0 },
+        };
 
-VL53L0X sensor;
+        // Create a table trace
+        var tableTrace = {
+            type: 'table',
+            header: {
+                values: ["Name", "Email"],
+                align: "center",
+                line: { width: 1, color: 'black' },
+                fill: { color: "grey" },
+                font: { family: "Arial", size: 12, color: "white" }
+            },
+            cells: {
+                values: tableData.map(row => [row.name, row.email]),
+                align: "center",
+                line: { color: "black", width: 1 },
+                font: { family: "Arial", size: 11, color: ["black"] },
+                height: 30,
+            },
+        };
 
-void setup() {
-  Serial.begin(9600);
-  Wire.begin();
-  
-  // Initialize the sensor
-  if (!sensor.init()) {
-    Serial.println("Failed to initialize VL53L0X sensor!");
-    while (1);
-  }
+        // Create the plot with the table as a subplot
+        var plotData = [tableTrace];
+        Plotly.newPlot("plot-container", plotData, tableLayout);
 
-  // Set the measurement range (Short, Medium, Long)
-  // You can change this to VL53L0X::VL53L0X_RangingModeMedium or VL53L0X::VL53L0X_RangingModeLong
-  sensor.setDistanceMode(VL53L0X::VL53L0X_RangingModeShort);
-
-  // Start continuous measurements
-  sensor.startContinuous();
-}
-
-void loop() {
-  // Read the distance in millimeters
-  uint16_t distance = sensor.readRangeContinuousMillimeters();
-
-  // Check for measurement validity
-  if (sensor.timeoutOccurred()) {
-    Serial.println("Measurement timeout!");
-  } else {
-    Serial.print("Distance: ");
-    Serial.print(distance);
-    Serial.println(" mm");
-  }
-
-  delay(500);  // Delay between measurements
-}
-</code></pre>
-
-<h2>JavaScript for Syntax Highlighting</h2>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.25.0/prism.min.js"></script>
-<script>
-  Prism.highlightAll();
-</script>
-
+        // Add zooming functionality
+        var plotlyChart = document.getElementById("plot-container");
+        plotlyChart.on('plotly_relayout', function(eventData) {
+            if (eventData["xaxis.range"] || eventData["yaxis.range"]) {
+                Plotly.relayout("plot-container", {});
+            }
+        });
+    </script>
 </body>
 </html>
